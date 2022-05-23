@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}<title>Об авторе проекта</title>{% endblock %}
+{% block content %}
+  <h1>Привет, я - капитан Йоссариан</h1>
+  <div class="text-center">
+    <img src="{% static 'img/Author.jpg' %}" 
+         class="rounded" 
+         width="40%"
+         height="40%"
+         alt="...">
+  </div>
+  <p>
+    Я люблю:
+  </p>
+  <ul class="list-group"> 
+    <li class="list-group-item list-group-item-success">Уловки</li>
+    <li class="list-group-item list-group-item-success">Фракталы</li>
+    <li class="list-group-item list-group-item-success">Искусство</li>
+  </ul>
+  <p>
+    Я не люблю:
+  </p>
+  <ul class="list-group"> 
+    <li class="list-group-item list-group-item-danger">Сквозняк</li>
+  </ul>
+{% endblock %}
+
