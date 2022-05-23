@@ -156,17 +156,37 @@ class GroupViewTests(TestCase):
                     'form').fields.get(value)
                 self.assertIsInstance(form_field, expected)
 
+    def response_authorized_post(self, name, data=None, resp_args=None, followed=True):
+        return self.authorized_client.post(
+            reverse(
+                name,
+                kwargs=resp_args
+            ),
+            data,
+            follow=followed
+        )
+        
+    def response_authorized_get(self, name, data=None, resp_args=None, followed=True):
+        return self.authorized_client.get(
+            reverse(
+                name,
+                kwargs=resp_args
+            ),
+            data,
+            follow=followed
+        )    
+        
     def test_new_group_has_no_posts(self):
         """В новой группе не было постов"""
         form_data = {
             'text': 'Текст из формы',
             'group.title': 'newgroup',
         }
-        self.authorized_client.post(
-            reverse('posts:post_create'),
+        self.response_authorized_post(
+            name='posts:post_create',
             data=form_data,
-            follow=True,
         )
+
         post_cnt = self.group.posts_group.all().count()
         self.assertEqual(post_cnt, 1)
 
@@ -175,20 +195,18 @@ class GroupViewTests(TestCase):
             пользователей и удалять их из подписок.
         """
         following = User.objects.create(username='following')
-        self.authorized_client.post(
-            reverse('posts:profile_follow', kwargs={'username': following}),
-            follow=True,
+        self.response_authorized_post(
+            name='posts:profile_follow', 
+            resp_args={'username': following}                         
         )
-
         self.assertIs(
             Follow.objects.filter(user=self.user, author=following).exists(),
             True
         )
-
-        self.authorized_client.post(
-            reverse('posts:profile_unfollow', kwargs={'username': following}),
-            follow=True,
-        )
+        self.response_authorized_post(
+            name='posts:profile_unfollow', 
+            resp_args={'username': following}
+            )
         self.assertIs(
             Follow.objects.filter(user=self.user, author=following).exists(),
             False
@@ -202,10 +220,11 @@ class GroupViewTests(TestCase):
         Follow.objects.create(user=self.user, author=following)
         post = Post.objects.create(author=following, text="новый пост")
 
-        response = self.authorized_client.get(
-            reverse('posts:profile_follow', kwargs={'username': following}),
-            follow=True,
-        )
+        response = self.response_authorized_get(
+            name='posts:profile_follow',
+            resp_args={'username': following}
+        )     
+
         self.assertIn(post.text, response.content.decode())
         response = self.guest_client.get(
             reverse('posts:profile_follow', kwargs={'username': following}),
