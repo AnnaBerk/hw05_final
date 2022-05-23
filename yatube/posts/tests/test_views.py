@@ -62,8 +62,9 @@ class GroupViewTests(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         cache.clear()
-        
-    def response_authorized_post(self, name, data=None, resp_args=None, followed=True):
+
+    def response_authorized_post(self, name, data=None,
+                                 resp_args=None, followed=True):
         return self.authorized_client.post(
             reverse(
                 name,
@@ -72,8 +73,9 @@ class GroupViewTests(TestCase):
             data,
             follow=followed
         )
-        
-    def response_authorized_get(self, name, data=None, resp_args=None, followed=True):
+
+    def response_authorized_get(self, name, data=None,
+                                resp_args=None, followed=True):
         return self.authorized_client.get(
             reverse(
                 name,
@@ -81,7 +83,7 @@ class GroupViewTests(TestCase):
             ),
             data,
             follow=followed
-        )    
+        )
 
     def test_group_list_page_show_correct_context(self):
         """Пост group2 не попал на страницу записей group."""
@@ -162,7 +164,7 @@ class GroupViewTests(TestCase):
             name='posts:post_create'
         )
         response_edit_pg = self.response_authorized_get(
-            name='posts:post_edit', 
+            name='posts:post_edit',
             resp_args={'post_id': '1'}
         )
         form_fields = {
@@ -176,8 +178,8 @@ class GroupViewTests(TestCase):
                 self.assertIsInstance(form_field, expected)
                 form_field = response_edit_pg.context.get(
                     'form').fields.get(value)
-                self.assertIsInstance(form_field, expected)    
-        
+                self.assertIsInstance(form_field, expected)
+
     def test_new_group_has_no_posts(self):
         """В новой группе не было постов"""
         form_data = {
@@ -198,17 +200,17 @@ class GroupViewTests(TestCase):
         """
         following = User.objects.create(username='following')
         self.response_authorized_post(
-            name='posts:profile_follow', 
-            resp_args={'username': following}                         
+            name='posts:profile_follow',
+            resp_args={'username': following}
         )
         self.assertIs(
             Follow.objects.filter(user=self.user, author=following).exists(),
             True
         )
         self.response_authorized_post(
-            name='posts:profile_unfollow', 
+            name='posts:profile_unfollow',
             resp_args={'username': following}
-            )
+        )
         self.assertIs(
             Follow.objects.filter(user=self.user, author=following).exists(),
             False
@@ -225,7 +227,7 @@ class GroupViewTests(TestCase):
         response = self.response_authorized_get(
             name='posts:profile_follow',
             resp_args={'username': following}
-        )     
+        )
 
         self.assertIn(post.text, response.content.decode())
         response = self.guest_client.get(
