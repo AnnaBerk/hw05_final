@@ -131,11 +131,10 @@ def profile_follow(request, username):
     current_user = request.user
     if author != current_user:
         Follow.objects.get_or_create(user=current_user, author=author)
-        return redirect(
-            'posts:profile',
-            username
-        )
-    return render(request, 'posts/follow.html')
+    return redirect(
+        'posts:profile',
+        username
+    )
 
 
 @login_required
