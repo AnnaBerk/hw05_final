@@ -62,12 +62,33 @@ class GroupViewTests(TestCase):
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
         cache.clear()
+        
+    def response_authorized_post(self, name, data=None, resp_args=None, followed=True):
+        return self.authorized_client.post(
+            reverse(
+                name,
+                kwargs=resp_args
+            ),
+            data,
+            follow=followed
+        )
+        
+    def response_authorized_get(self, name, data=None, resp_args=None, followed=True):
+        return self.authorized_client.get(
+            reverse(
+                name,
+                kwargs=resp_args
+            ),
+            data,
+            follow=followed
+        )    
 
     def test_group_list_page_show_correct_context(self):
         """Пост group2 не попал на страницу записей group."""
-        response = self.authorized_client.get(reverse(
-            'posts:group_list', kwargs={'slug': 'slug'}
-        ))
+        response = self.response_authorized_get(
+            self, name='posts:group_list',
+            resp_args={'slug': 'slug'}
+        )
         first_object = response.context['page_obj'][0]
         post_group_0 = first_object.group.title
         self.assertNotEqual(post_group_0, 'group2')
@@ -137,11 +158,12 @@ class GroupViewTests(TestCase):
 
     def test_post_create_and_edit_page_show_correct_context(self):
         """Шаблон post_create и edit сформированы с правильным контекстом."""
-        response_create_pg = self.authorized_client.get(
-            reverse('posts:post_create')
+        response_create_pg = self.response_authorized_get(
+            name='posts:post_create'
         )
-        response_edit_pg = self.authorized_client.get(
-            reverse('posts:post_edit', kwargs={'post_id': '1'})
+        response_edit_pg = self.response_authorized_get(
+            name='posts:post_edit', 
+            resp_args={'post_id': '1'}
         )
         form_fields = {
             'text': forms.fields.CharField,
@@ -154,27 +176,7 @@ class GroupViewTests(TestCase):
                 self.assertIsInstance(form_field, expected)
                 form_field = response_edit_pg.context.get(
                     'form').fields.get(value)
-                self.assertIsInstance(form_field, expected)
-
-    def response_authorized_post(self, name, data=None, resp_args=None, followed=True):
-        return self.authorized_client.post(
-            reverse(
-                name,
-                kwargs=resp_args
-            ),
-            data,
-            follow=followed
-        )
-        
-    def response_authorized_get(self, name, data=None, resp_args=None, followed=True):
-        return self.authorized_client.get(
-            reverse(
-                name,
-                kwargs=resp_args
-            ),
-            data,
-            follow=followed
-        )    
+                self.assertIsInstance(form_field, expected)    
         
     def test_new_group_has_no_posts(self):
         """В новой группе не было постов"""
