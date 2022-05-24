@@ -196,17 +196,26 @@ class GroupViewTests(TestCase):
 
     def test_auth_follow(self):
         """ Авторизованный пользователь может подписываться на других
-            пользователей и удалять их из подписок.
+            пользователей.
         """
         following = User.objects.create(username='following')
         self.response_authorized_post(
             name='posts:profile_follow',
             resp_args={'username': following}
         )
-        self.assertIs(
-            Follow.objects.filter(user=self.user, author=following).exists(),
-            True
-        )
+        followMod = Follow.objects.get(user=self.user, author=following)
+        self.assertEqual(
+            followMod.user, self.user)
+        self.assertEqual(
+            followMod.author, following)
+
+    def test_auth_follow(self):
+        """ Авторизованный пользователь может удалять других
+            пользователей из подписок.
+        """
+        following = User.objects.create(username='following')
+        Follow.objects.create(user=self.user, author=following)
+
         self.response_authorized_post(
             name='posts:profile_unfollow',
             resp_args={'username': following}
