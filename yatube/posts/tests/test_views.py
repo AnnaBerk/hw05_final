@@ -209,7 +209,7 @@ class GroupViewTests(TestCase):
         self.assertEqual(
             followMod.author, following)
 
-    def test_auth_follow(self):
+    def test_auth_unfollow(self):
         """ Авторизованный пользователь может удалять других
             пользователей из подписок.
         """
@@ -225,22 +225,29 @@ class GroupViewTests(TestCase):
             False
         )
 
-    def test_new_post(self):
+    def test_new_post_appears_in_followers_feed(self):
         """ Новая запись пользователя появляется в ленте тех, кто на него
-            подписан и не появляется в ленте тех, кто не подписан на него.
+            подписан.
         """
         following = User.objects.create(username='following')
         Follow.objects.create(user=self.user, author=following)
         post = Post.objects.create(author=following, text="новый пост")
 
         response = self.response_authorized_get(
-            name='posts:profile_follow',
-            resp_args={'username': following}
+            name='posts:follow_index'
         )
 
         self.assertIn(post.text, response.content.decode())
+
+    def test_new_post_does_not_appear_in_not_followers_feed(self):
+        """ Новая запись пользователя не появляется в ленте тех,
+        кто не подписан на него.
+        """
+        following = User.objects.create(username='following')
+        Follow.objects.create(user=self.user, author=following)
+        post = Post.objects.create(author=following, text="новый пост")
+
         response = self.guest_client.get(
-            reverse('posts:profile_follow', kwargs={'username': following}),
-            follow=True,
+            reverse('posts:follow_index'),
         )
         self.assertNotIn(post.text, response.content.decode())
